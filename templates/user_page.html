@@ -5,16 +5,37 @@
 {% block content %}
 
 <span>
+    <div>
     <img src='{{user.image_url}}' width="200px">
+    </div>
 
     <h3>{{name}}</h3>
-    <p> pppppp {{user.id}} pppppp</p>
-    <form action="/users/{{user.id}}/edit">
-        <button>Edit</button>
-    </form>
-    <form action="/users/{{user.id}}/delete" method="POST">
-        <button>Delete</button>
-    </form>
+    <span>
+        <form style="display: inline-block" action="/users/{{user.id}}/edit">
+            <button>Edit</button>
+        </form>
+    </span>
+    <span>
+        <form style="display: inline-block" action="/users/{{user.id}}/delete" method="POST">
+            <button>Delete</button>
+        </form>
+    </span>
 </span>
+
+{% if posts %}
+<div class="container">
+    <h3>My Posts:</h3>
+    <ul id="posts">
+        {% for post in posts %}
+        <li><a href="/posts/{{post.id}}">{{post.title}}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endif %}
+
+<form action="/users/{{user.id}}/posts/new">
+    <button>Create New Post</button>
+</form>
 
 {% endblock %}

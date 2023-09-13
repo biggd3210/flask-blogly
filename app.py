@@ -2,7 +2,7 @@
 
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
@@ -14,8 +14,11 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 debug = DebugToolbarExtension(app)
 
 connect_db(app)
+
+# db.drop_all()
 # db.create_all()
 
+# ******* Part One **********
 @app.route('/')
 def redirect_to_users():
     """redirects to users list page"""
@@ -53,14 +56,15 @@ def add_new_user():
 def show_unique_user(user_id):
     """displays unique user page requested by user id"""
     user = User.query.get_or_404(user_id)
-    name = user.make_full_name()
-    return render_template("user_page.html", user=user, name=name)
+    posts = Post.query.filter(Post.user_id == user_id).all()
+    name = user.make_full_name
+    return render_template("user_page.html", user=user, posts=posts, name=name)
 
 @app.route("/users/<int:user_id>/edit")
 def display_edit_user(user_id):
     """displays edit page for specified user."""
     user = User.query.get_or_404(user_id)
-    name = user.make_full_name()
+    name = user.make_full_name
     return render_template("edit_user.html", user=user, name=name)
 
 
@@ -95,3 +99,61 @@ def delete_user(user_id):
     db.session.commit()
 
     return redirect('/')
+
+# *********** Part Two Post routes *************
+
+@app.route('/posts/<post_id>')
+def display_unique_post(post_id):
+    """displays unique post based on post_id ((Hyperlink))"""
+    post = Post.query.get_or_404(post_id)
+    user = post.user
+    name = user.make_full_name
+    return render_template("post.html", post=post)
+
+@app.route('/users/<user_id>/posts/new')
+def display_new_post_form(user_id):
+    """shows form for user to write new post"""
+    user = User.query.get_or_404(user_id)
+    return render_template("new_post.html", user=user)
+
+@app.route('/users/<user_id>/posts/new', methods=["POST"])
+def save_new_post(user_id):
+    title = request.form['title']
+    content = request.form['content']
+
+    new_post = Post(title=title, content=content, user_id=user_id)
+
+    db.session.add(new_post)
+    db.session.commit()
+
+    return redirect(f'/users/{user_id}')
+
+@app.route('/posts/<post_id>/edit')
+def show_post_edit(post_id):
+    """displays edit form for unique post"""
+    post = Post.query.get_or_404(post_id)
+    return render_template("edit_post.html", post=post)
+
+@app.route('/posts/<post_id>/edit', methods=["POST"])
+def confirm_post_edit(post_id):
+    """updates db with post edit"""
+    post = Post.query.get_or_404(post_id)
+    new_title = request.form['title']
+    new_content = request.form['content']
+
+    post.title = new_title
+    post.content = new_content
+
+    db.session.commit()
+    return redirect(f'/posts/{post_id}')
+
+
+@app.route('/posts/<post_id>/delete', methods=["POST"])
+def delete_post(post_id):
+    """deletes given post and commits to db."""
+    post = Post.query.get_or_404(post_id)
+    user = post.user
+    db.session.delete(post)
+    db.session.commit()
+
+    return redirect(f"/users/{user.id}")
