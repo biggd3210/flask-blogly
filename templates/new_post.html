@@ -16,11 +16,24 @@
         <label for="content">Content</label>
         <input type="text" id="content" name="content">
     </div>
-
-    <button>submit</button>
-</form>
-<form action="/users/{{user.id}}">
-    <button>Cancel</button>
+    {% if tags %}
+    <div>
+        {% for tag in tags %}
+        <div>
+            <input class="form-check-input"
+                   type="checkbox"
+                   value="{{tag.id}}"
+                   id="tag_{{tag.id}}"
+                   name="tags">
+            <label class="form-check-label" for="tag_{{tag.id}}">
+                {{ tag.name }}
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <button class="btn btn-danger" formmethod="GET" formaction="/users/{{user.id}}">Cancel</button>
+    <button class="btn btn-success">Submit</button>
 </form>
 
 {% endblock %}

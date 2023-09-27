@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h2>Edit post for {{post.user.make_full_name}}!</h2>
+<h2>Edit post for {{user.make_full_name}}!</h2>
 
 <form action="/posts/{{post.id}}/edit" method="POST">
     
@@ -16,11 +16,8 @@
         <label for="content">Content</label>
         <input type="text" id="content" name="content" value="{{post.content}}">
     </div>
-
-    <button>submit</button>
-</form>
-<form action="/users/{{post.user.id}}">
-    <button>Cancel</button>
+    <button class="btn btn-danger" formmethod="GET" formaction="/users/{{user.id}}">Cancel</button>
+    <button class="btn btn-success">Submit</button>
 </form>
 
 {% endblock %}

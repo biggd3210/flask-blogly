@@ -29,6 +29,8 @@ class User(db.Model):
                           nullable=True,
                           default="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/2048px-User-avatar.svg.png")
     
+    posts = db.relationship("Post", backref="users", cascade="all, delete-orphan", passive_deletes=True)
+    
     def __repr__(self):
         u = self
         return f"<User id={u.id} f_name={u.first_name} l_name={u.last_name}"
@@ -49,7 +51,7 @@ class User(db.Model):
         last = self.last_name
         return f"{first} {last}"
     
-
+    
 # ******** Part Two ********* 
 class Post(db.Model):
     """User model"""
@@ -70,9 +72,10 @@ class Post(db.Model):
                           default=datetime.utcnow)
     
     user_id = db.Column(db.Integer,
-                        db.ForeignKey('users.id'))
-    
-    user = db.relationship("User", backref="posts")
+                        db.ForeignKey('users.id'),
+                        nullable=False)
+
+
     
     def __repr__(self):
         p = self
@@ -87,8 +90,38 @@ class Post(db.Model):
     @classmethod
     def get_posts_by_user(cls, user_id):
         return cls.query.filter_by(user_id=user_id).all()
+        
+class PostTag(db.Model):
+    """M2M relationship between tag and post"""
+
+    __tablename__ = "posts_tags"
+
+    post_id = db.Column(db.Integer,
+                        db.ForeignKey("posts.id"),
+                        primary_key=True)
     
+    tag_id = db.Column(db.Integer,
+                       db.ForeignKey("tags.id"),
+                       primary_key=True)
 
 
-    # ******** instance methods go here *********
+class Tag(db.Model):
+    """create tags for post"""
 
+    __tablename__ = "tags"
+
+    id = db.Column(db.Integer,
+                   primary_key=True,)
+    
+    name = db.Column(db.String,
+                     nullable=False,
+                     unique=True)
+    
+    def __repr__(self):
+        t = self
+        return f"Tag id = {t.id} Tag Name = {t.name}"
+    
+    posts = db.relationship('Post',
+                            secondary="posts_tags",
+                            cascade="all, delete",
+                            backref="tags")
